@@ -49,6 +49,8 @@ def play(args):
     env_cfg.noise.add_noise = False
     env_cfg.domain_rand.randomize_friction = False
     env_cfg.domain_rand.push_robots = False
+    env_cfg.terrain.mesh_type = "plane"
+    train_cfg.runner.num_steps_per_env=1
 
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
@@ -118,4 +120,6 @@ if __name__ == '__main__':
     RECORD_FRAMES = False
     MOVE_CAMERA = False
     args = get_args()
+    args.num_envs=1
+    args.task = "cassie"
     play(args)
