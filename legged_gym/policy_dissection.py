@@ -258,9 +258,11 @@ if __name__ == "__main__":
     obs_mid = 0.5
     obs_scale = 1 / 2
     env = make_env()
-    print("===== Do Policy Dissection for on ckpt =====")
     start_time = time.time()
-    weights = np.load("./scripts/cassie.npz")
+    path = "./scripts/cassie_tanh.npz"
+    activation_func = "tanh"
+    weights = np.load(path)
+    print("===== Do Policy Dissection for {} ckpt =====".format(path))
     collected_episodes = []
     for seed in range(seed_num):
         o, _ = env.reset()
@@ -270,7 +272,7 @@ if __name__ == "__main__":
         total_r = 0
 
         while True:
-            action, activation = policy_func(weights, o.clone().cpu().numpy(), {}, "")
+            action, activation = policy_func(weights, o.clone().cpu().numpy(), {}, "", activation=activation_func)
             o, _, r, d, i = env.step(torch.unsqueeze(torch.from_numpy(action.astype(np.float32)), dim=0))
             episode_activation_values.append(activation)
             current_step += 1
