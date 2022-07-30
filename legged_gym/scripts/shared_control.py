@@ -62,16 +62,16 @@ def play(args, map, activation_func="elu", model_name=None):
     policy_weights = np.load("{}_{}.npz".format(name, activation_func))
 
     for i in range(10 * int(env.max_episode_length)):
-        command = "z" if i % 500 in [i for i in range(25)] else ""
-        if command == "z":
-            print(i)
+        command = "Forward"
+        # if command == "Forward":
+        #     print(i)
 
-        obs[..., 9:12] = torch.Tensor([1.5, 0., .0])
+        obs[..., 9:12] = torch.Tensor([0. , 0., .0])
         actions, _ = ppo_inference_torch(policy_weights, obs.clone().cpu().numpy(),
                                          map,
                                          command,
                                          activation=activation_func,
-                                         deterministic=False)
+                                         deterministic=True)
         actions = torch.unsqueeze(torch.from_numpy(actions.astype(np.float32)), dim=0)
         obs, _, rews, dones, infos = env.step(actions)
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
                   "z": {0: [(267, 7), (497, 10)]}
                   }
     z_0_cassie_elu = {"Right": {1: [(169, 10)]},
-                      "Forward": {2: [(2, 5)]},
+                      "Forward": {1: [(40, 28)], 0:[(487, -10)]},
                       "z": {0: [(394, 146), (170, 143), (487, -100)]}
                       }
     anymal_elu = {"Forward": {0: [(143, -15)]}}

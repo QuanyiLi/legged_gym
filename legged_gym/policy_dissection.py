@@ -254,14 +254,14 @@ def make_env(task_name="cassie"):
 if __name__ == "__main__":
     policy_func = ppo_inference_torch
     # policy_func = ppo_inference
-    seed_num = 1
+    seed_num = 10
     start_time = time.time()
 
-    path = "./scripts/0_z_cassie_elu.npz"
+    path = "./scripts/1000_force_T_cassie_elu.npz"
     activation_func = "elu"
     # task_name = "anymal_c_rough"
     task_name = "cassie"
-    command = [1., 0., .0]
+    command = None
 
     env = make_env(task_name=task_name)
     weights = np.load(path)
@@ -288,6 +288,10 @@ if __name__ == "__main__":
                 print("Finish seed: {}, reward: {}".format(seed, total_r))
                 break
             episode_observations.append(o.cpu().numpy()[0])
+    self = env
+    self.gym.destroy_sim(self.sim)
+    if self.viewer is not None:
+        self.gym.destroy_viewer(self.viewer)
     with open("collect_episodes.pkl", "wb+") as epi_data:
         pickle.dump(collected_episodes, epi_data)
     pd_ret = do_policy_dissection(collected_episodes)

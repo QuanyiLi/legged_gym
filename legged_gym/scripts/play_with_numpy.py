@@ -76,4 +76,4 @@ if __name__ == '__main__':
     # args.task = "anymal_c_rough"
     args.task = "cassie"
     activation = "elu"
-    play(args, activation_func=activation, model_name="0_z_cassie")
+    play(args, activation_func=activation, model_name="forward_cassie")
