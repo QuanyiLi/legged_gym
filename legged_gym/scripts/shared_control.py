@@ -1,3 +1,33 @@
+# SPDX-FileCopyrightText: Copyright (c) 2021 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# SPDX-License-Identifier: BSD-3-Clause
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+# this list of conditions and the following disclaimer in the documentation
+# and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+# contributors may be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Copyright (c) 2021 ETH Zurich, Nikita Rudin
+
 from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
 
@@ -9,7 +39,8 @@ import numpy as np
 import torch
 
 
-def play(args):
+def play(args, activation_func="elu"):
+    assert activation_func == "elu" or activation_func == "tanh", "only support elu or tanh"
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
     env_cfg.env.num_envs = min(env_cfg.env.num_envs, 50)
@@ -27,12 +58,15 @@ def play(args):
     obs = env.get_observations()
     env.set_camera((2, -5, 3), (0, 0, 0))
 
-    policy_weights = np.load("cassie.npz")
+    name = "anymal" if "anymal" in args.task else "cassie"
+    policy_weights = np.load("{}_{}.npz".format(name, activation_func))
 
     for i in range(10 * int(env.max_episode_length)):
-        obs[..., 9:12] = torch.Tensor([.0, 0., 0.])
-        actions, _ = ppo_inference_torch(policy_weights, obs.clone().cpu().numpy(), {"Forward": {0: [(79, 15)]}},
+        obs[..., 9:12] = torch.Tensor([.2, 0., 0.])
+        actions, _ = ppo_inference_torch(policy_weights, obs.clone().cpu().numpy(),
+                                         {"Forward": {0: [(429, 15)]}},
                                          "Forward",
+                                         activation=activation_func,
                                          deterministic=False)
         actions = torch.unsqueeze(torch.from_numpy(actions.astype(np.float32)), dim=0)
         obs, _, rews, dones, infos = env.step(actions)
@@ -41,5 +75,6 @@ def play(args):
 if __name__ == '__main__':
     args = get_args()
     args.num_envs = 1
-    args.task = "cassie"
-    play(args)
+    args.task = "anymal_c_rough"
+    activation = "elu"
+    play(args, activation_func=activation)

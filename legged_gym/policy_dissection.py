@@ -229,10 +229,10 @@ def do_policy_dissection(collect_episodes, specific_neuron=None, specific_obs=No
     return ckpt_ret
 
 
-def make_env():
+def make_env(task_name="cassie"):
     args = get_args()
     args.num_envs = 1
-    args.task = "cassie"
+    args.task = task_name
     args.headless = True
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
@@ -257,10 +257,11 @@ if __name__ == "__main__":
     seed_num = 10
     obs_mid = 0.5
     obs_scale = 1 / 2
-    env = make_env()
     start_time = time.time()
-    path = "./scripts/cassie_tanh.npz"
+    path = "./scripts/anymal_tanh.npz"
     activation_func = "tanh"
+    task_name = "anymal_c_rough"
+    env = make_env(task_name=task_name)
     weights = np.load(path)
     print("===== Do Policy Dissection for {} ckpt =====".format(path))
     collected_episodes = []
