@@ -58,4 +58,5 @@ runs
 *.egg-info
 __pycache__
 /legged_gym/collect_episodes.pkl
-/legged_gym/policy_dissection_ret.pkl
+/legged_gym/cassie_elu.pkl
+/legged_gym/scripts/*.npz
