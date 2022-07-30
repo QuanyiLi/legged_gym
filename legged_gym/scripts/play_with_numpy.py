@@ -39,7 +39,7 @@ import numpy as np
 import torch
 
 
-def play(args, activation_func="elu"):
+def play(args, activation_func="elu", model_name=None):
     assert activation_func == "elu" or activation_func == "tanh", "only support elu or tanh"
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
@@ -58,10 +58,11 @@ def play(args, activation_func="elu"):
     obs = env.get_observations()
     env.set_camera((2, -5, 3), (0, 0, 0))
 
-    name = "anymal" if "anymal" in args.task else "cassie"
+    name = model_name or ("anymal" if "anymal" in args.task else "cassie")
     policy_weights = np.load("{}_{}.npz".format(name, activation_func))
 
     for i in range(10 * int(env.max_episode_length)):
+        obs[..., 9:12] = torch.Tensor([1.5, 0., .0])
         actions, _ = ppo_inference_torch(policy_weights, obs.clone().cpu().numpy(), {}, "None",
                                          activation=activation_func,
                                          deterministic=False)
@@ -72,6 +73,7 @@ def play(args, activation_func="elu"):
 if __name__ == '__main__':
     args = get_args()
     args.num_envs = 1
-    args.task = "anymal_c_rough"
+    # args.task = "anymal_c_rough"
+    args.task = "cassie"
     activation = "elu"
-    play(args, activation_func=activation)
+    play(args, activation_func=activation, model_name="0_z_cassie")

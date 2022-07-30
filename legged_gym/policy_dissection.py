@@ -254,13 +254,15 @@ def make_env(task_name="cassie"):
 if __name__ == "__main__":
     policy_func = ppo_inference_torch
     # policy_func = ppo_inference
-    seed_num = 10
-    obs_mid = 0.5
-    obs_scale = 1 / 2
+    seed_num = 1
     start_time = time.time()
-    path = "./scripts/anymal_tanh.npz"
-    activation_func = "tanh"
-    task_name = "anymal_c_rough"
+
+    path = "./scripts/0_z_cassie_elu.npz"
+    activation_func = "elu"
+    # task_name = "anymal_c_rough"
+    task_name = "cassie"
+    command = [1., 0., .0]
+
     env = make_env(task_name=task_name)
     weights = np.load(path)
     print("===== Do Policy Dissection for {} ckpt =====".format(path))
@@ -273,6 +275,8 @@ if __name__ == "__main__":
         total_r = 0
 
         while True:
+            if command is not None:
+                o[..., 9:12] = torch.Tensor(command)
             action, activation = policy_func(weights, o.clone().cpu().numpy(), {}, "", activation=activation_func)
             o, _, r, d, i = env.step(torch.unsqueeze(torch.from_numpy(action.astype(np.float32)), dim=0))
             episode_activation_values.append(activation)

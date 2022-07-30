@@ -70,7 +70,7 @@ def ppo_inference_torch(weights, obs,
     x = x.reshape(-1)
     mean, std = np.tanh(x) if tanh_action else x, weights["std"]
     if deterministic:
-        return mean
+        return mean, step_activation_value
     action = np.random.normal(mean, std)
     ret = action
     return ret, step_activation_value
