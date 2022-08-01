@@ -991,6 +991,8 @@ class LeggedRobot(BaseTask):
                                      dim=-1) - self.cfg.rewards.max_contact_force).clip(min=0.), dim=1)
 
     def _additional_create(self, env_handle, env_index):
+        if self.cfg.no_obstacle:
+            return
         """
              This function will create obstacles so that the robot have to sidestep them
              """
