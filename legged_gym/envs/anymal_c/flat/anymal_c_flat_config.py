@@ -32,7 +32,7 @@ from legged_gym.envs import AnymalCRoughCfg, AnymalCRoughCfgPPO
 
 class AnymalCFlatCfg( AnymalCRoughCfg ):
     class env( AnymalCRoughCfg.env ):
-        num_observations = 48
+        num_observations = 49
   
     class terrain( AnymalCRoughCfg.terrain ):
         mesh_type = 'plane'
@@ -62,7 +62,7 @@ class AnymalCFlatCfgPPO( AnymalCRoughCfgPPO ):
     class policy( AnymalCRoughCfgPPO.policy ):
         actor_hidden_dims = [128, 64, 32]
         critic_hidden_dims = [128, 64, 32]
-        activation = 'elu' # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
+        activation = 'tanh' # can be elu, relu, selu, crelu, lrelu, tanh, sigmoid
 
     class algorithm( AnymalCRoughCfgPPO.algorithm):
         entropy_coef = 0.01

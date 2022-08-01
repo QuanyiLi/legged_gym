@@ -69,7 +69,7 @@ def play(args):
     logger = Logger(env.dt)
     robot_index = 0 # which robot is used for logging
     joint_index = 1 # which joint is used for logging
-    stop_state_log = 100 # number of steps before plotting states
+    stop_state_log = 150 # number of steps before plotting states
     stop_rew_log = env.max_episode_length + 1 # number of steps before print average episode rewards
     pos = env_cfg.viewer.pos
     pos[0] -= 10
@@ -122,8 +122,8 @@ def play(args):
 if __name__ == '__main__':
     EXPORT_POLICY = True
     RECORD_FRAMES = False
-    MOVE_CAMERA = True
+    MOVE_CAMERA = False
     args = get_args()
     args.num_envs=50
-    args.task = "cassie"
+    args.task = "anymal_c_flat"
     play(args)
