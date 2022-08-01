@@ -62,7 +62,7 @@ def play(args, activation_func="elu", model_name=None):
     policy_weights = np.load("{}_{}.npz".format(name, activation_func))
 
     for i in range(10 * int(env.max_episode_length)):
-        obs[..., 9:12] = torch.Tensor([1.5, 0., .0])
+        # obs[..., 9:12] = torch.Tensor([1.5, 0., .0])
         actions, _ = ppo_inference_torch(policy_weights, obs.clone().cpu().numpy(), {}, "None",
                                          activation=activation_func,
                                          deterministic=False)

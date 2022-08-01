@@ -2,7 +2,7 @@ import torch as th
 import numpy as np
 
 if __name__=="__main__":
-    path = "/home/quanyi/neurips/forward/Jul30_18-26-29_/model_900.pt"
+    path = "/home/quanyi/neurips/forward/model_1300.pt"
     weights = th.load(path)["model_state_dict"]
     ret = {}
     for layer, weight in weights.items():
