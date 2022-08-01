@@ -32,14 +32,19 @@ from legged_gym import LEGGED_GYM_ROOT_DIR
 import os
 
 import isaacgym
+from isaacgym import gymapi
 from legged_gym.envs import *
 from legged_gym.utils import get_args, export_policy_as_jit, task_registry, Logger
 from legged_gym.policy_utils import ppo_inference_torch, control_neuron_activation
 import numpy as np
 import torch
+from legged_gym.pid import ActivationPID
+from isaacgym.torch_utils import quat_apply
 
 
-def play(args, activation_func="elu", model_name=None):
+def play(args, layer, index, activation_func="elu", model_name=None, target_heading=0.5):
+    pid_controller = ActivationPID(k_p=20, k_i=0.0, k_d=0.0, neuron_layer=layer, neuron_index=index)
+    # import pygame module in this program
     assert activation_func == "elu" or activation_func == "tanh", "only support elu or tanh"
     env_cfg, train_cfg = task_registry.get_cfgs(name=args.task)
     # override some parameters for testing
@@ -47,36 +52,52 @@ def play(args, activation_func="elu", model_name=None):
     env_cfg.terrain.num_rows = 5
     env_cfg.terrain.num_cols = 5
     env_cfg.terrain.curriculum = False
+    env_cfg.no_obstacle = False
     env_cfg.noise.add_noise = False
     env_cfg.domain_rand.randomize_friction = False
     env_cfg.domain_rand.push_robots = False
     env_cfg.terrain.mesh_type = "plane"
+    env_cfg.no_obstacle = True
     train_cfg.runner.num_steps_per_env = 1
 
-    # !!!!!!!!!!!!!! Turn on this configure for comparison with pd !!!!!!!!!!!!!!!!!
-    env_cfg.commands.heading_command= True
     # prepare environment
     env, _ = task_registry.make_env(name=args.task, args=args, env_cfg=env_cfg)
     obs = env.get_observations()
-    env.set_camera((2, -5, 3), (0, 0, 0))
+    env.max_episode_length = 10000
 
+    self = env
     name = model_name or ("anymal" if "anymal" in args.task else "cassie")
     policy_weights = np.load("{}_{}.npz".format(name, activation_func))
+    for i in range(int(1e9)):
 
-    for i in range(10 * int(env.max_episode_length)):
-        obs[..., 10:12] = torch.Tensor([1., 0.])
-        env.commands[:, 3] = -0.9
-        actions, _ = ppo_inference_torch(policy_weights, obs.clone().cpu().numpy(), {}, "None",
+        obs[..., 12] = 0.
+        obs[..., 10] = 1. # only x velocity
+        obs[..., 11] = 0.
+        # obs[..., -121:] = 0.
+        #
+        forward = quat_apply(self.base_quat, self.forward_vec)
+        heading = torch.atan2(forward[:, 1], forward[:, 0])
+        error = heading-target_heading
+        print(error)
+        actions, _ = ppo_inference_torch(policy_weights, obs.clone().cpu().numpy(),
+                                         pid_controller.get_updated_activation(error.cpu().numpy(), command="Control"),
+                                         "Control",
                                          activation=activation_func,
                                          deterministic=True)
         actions = torch.unsqueeze(torch.from_numpy(actions.astype(np.float32)), dim=0)
-        obs, _, rews, dones, infos = env.step(actions)
+        obs, _, rews, dones, infos, = env.step(actions)
+        x, y, z = env.base_pos[0]
+        env.set_camera((x - 3, y, 2), (x, y, z))
+        # env.render()
+        if dones[0]:
+            command = "Stop"
 
 
 if __name__ == '__main__':
+    # (479, 30) (47, 32)
     args = get_args()
     args.num_envs = 1
-    # args.task = "anymal_c_rough"
+
     args.task = "anymal_c_flat"
     activation = "tanh"
-    play(args, activation_func=activation, model_name="anymal")
+    play(args, activation_func=activation, layer=0, index=121, model_name="anymal", target_heading=0.9)
