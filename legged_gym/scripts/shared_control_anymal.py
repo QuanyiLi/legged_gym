@@ -129,7 +129,7 @@ def play(args, map, activation_func="elu", model_name=None):
 
 
 if __name__ == '__main__':
-    anymal_tanh = {"Forward": {0: [(121, -3)]}}
+    anymal_tanh = {"Forward": {0: [(56, 15)]}}
     # (479, 30) (47, 32)
     args = get_args()
     args.num_envs = 1
